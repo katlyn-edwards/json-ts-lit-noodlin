@@ -41,14 +41,53 @@ let KTable = class KTable extends LitElement {
             return ['Offset', 'Size', 'Description'];
         }
     }
+    getData() {
+        const data = this.version ? this.getVersionedData(this.version) : this.data;
+        if (this.sortFn) {
+            let sortedData = data.slice();
+            sortedData.sort(this.sortFn);
+            return sortedData;
+        }
+        else {
+            return data;
+        }
+    }
+    maybeSort(e) {
+        if (e.target.innerText.trim() == 'Description') {
+            console.log('I can sort this');
+            this.sortFn = (a, b) => {
+                if (a.desc < b.desc) {
+                    return -1;
+                }
+                else if (a.desc > b.desc) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            };
+        }
+        else {
+            this.sortFn = undefined;
+        }
+    }
     render() {
         return html `
       <div id="table">
         <div>
-          ${this.getHeadings().map((heading, index) => html `<span class="${this.getClasses()[index]}">${heading}</span>`)}
+          ${this.getHeadings().map((heading, index) => html `
+              <span class="heading ${this.getClasses()[index]}"
+                    @click="${this.maybeSort}">
+                <span>
+                  ${heading}
+                </span>
+                <span class="sort">
+                  ${((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ? html `▾` : html `&nbsp;&nbsp;`}
+                </span>
+              </span>`)}
         </div>
         <div>
-          ${(this.version ? this.getVersionedData(this.version) : this.data)
+          ${this.getData()
             .map((item, index) => {
             return html `<k-row
                   .data="${item}"
@@ -70,8 +109,9 @@ KTable.styles = css `
       display: block;
     }
 
-    span {
+    .heading {
       box-sizing: border-box;
+      cursor: pointer;
       display: inline-block;
       font-weight: 700;
       overflow: hidden;
@@ -116,6 +156,9 @@ __decorate([
 __decorate([
     property({ type: String })
 ], KTable.prototype, "parentAddress", void 0);
+__decorate([
+    property({ type: Function })
+], KTable.prototype, "sortFn", void 0);
 KTable = __decorate([
     customElement('k-table')
 ], KTable);

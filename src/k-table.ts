@@ -10,8 +10,9 @@ export class KTable extends LitElement {
       display: block;
     }
 
-    span {
+    .heading {
       box-sizing: border-box;
+      cursor: pointer;
       display: inline-block;
       font-weight: 700;
       overflow: hidden;
@@ -60,6 +61,9 @@ export class KTable extends LitElement {
   @property({type: String})
   parentAddress = '';
 
+  @property({type: Function})
+  sortFn?: ((a: any, b: any) => number)|undefined;
+
   private getVersionedData(version: string) {
     return this.data.filter((item: {[key: string]: unknown}) => version in (item.addr as {[key: string]: string}));
   }
@@ -82,14 +86,51 @@ export class KTable extends LitElement {
     }
   }
 
+  private getData() {
+    const data = this.version ? this.getVersionedData(this.version) : this.data;
+    if (this.sortFn) {
+      let sortedData = data.slice();
+      sortedData.sort(this.sortFn!);
+      return sortedData;
+    } else {
+      return data;
+    }
+  }
+
+  private maybeSort(e: Event) {
+    if ((e.target as HTMLElement).innerText.trim() == 'Description') {
+      console.log('I can sort this');
+      this.sortFn = (a: {desc: string}, b: {desc: string}) => {
+        if (a.desc < b.desc) {
+          return -1;
+        } else if (a.desc > b.desc) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    } else {
+      this.sortFn = undefined;
+    }
+  }
+
   render() {
     return html`
       <div id="table">
         <div>
-          ${this.getHeadings().map((heading, index) => html`<span class="${this.getClasses()[index]}">${heading}</span>`)}
+          ${this.getHeadings().map((heading, index) => html`
+              <span class="heading ${this.getClasses()[index]}"
+                    @click="${this.maybeSort}">
+                <span>
+                  ${heading}
+                </span>
+                <span class="sort">
+                  ${((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ? html`▾` : html`&nbsp;&nbsp;`}
+                </span>
+              </span>`)}
         </div>
         <div>
-          ${(this.version ? this.getVersionedData(this.version) : this.data)
+          ${this.getData()
             .map((item: {[key: string]: unknown}, index: number) => {
               return html`<k-row
                   .data="${item}"

@@ -15,9 +15,12 @@ export declare class KTable extends LitElement {
     version: string;
     isEnum: boolean;
     parentAddress: string;
+    sortFn?: ((a: any, b: any) => number) | undefined;
     private getVersionedData;
     private getClasses;
     private getHeadings;
+    private getData;
+    private maybeSort;
     render(): import("lit-element").TemplateResult;
 }
 declare global {
