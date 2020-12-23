@@ -141,9 +141,13 @@ export class KRow extends LitElement {
       }
       return '';
     } else {
-      let off = parseInt(this.data.offset as string, 16);
-      return "Address: " + this.toHex(parseInt(this.parentAddress, 16) + off);
+      return "Address: " + this.getOffsetAddress();
     }
+  }
+
+  private getOffsetAddress() {
+    let off = parseInt(this.data.offset as string, 16);
+    return this.toHex(parseInt(this.parentAddress, 16) + off);
   }
 
   private showToggle() {
@@ -202,7 +206,7 @@ export class KRow extends LitElement {
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
               .enums="${this.enums}"
-              .parentAddress="${this.version ? this.getAddress() : ''}">
+              .parentAddress="${this.version ? this.getAddress() : this.getOffsetAddress()}">
             </k-table>` : ''}
       </div>
     `;

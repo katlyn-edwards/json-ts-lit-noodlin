@@ -74,9 +74,12 @@ let KRow = class KRow extends LitElement {
             return '';
         }
         else {
-            let off = parseInt(this.data.offset, 16);
-            return "Address: " + this.toHex(parseInt(this.parentAddress, 16) + off);
+            return "Address: " + this.getOffsetAddress();
         }
+    }
+    getOffsetAddress() {
+        let off = parseInt(this.data.offset, 16);
+        return this.toHex(parseInt(this.parentAddress, 16) + off);
     }
     showToggle() {
         return (this.isExpandEnum() || this.data.type in this.structs);
@@ -127,7 +130,7 @@ let KRow = class KRow extends LitElement {
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
               .enums="${this.enums}"
-              .parentAddress="${this.version ? this.getAddress() : ''}">
+              .parentAddress="${this.version ? this.getAddress() : this.getOffsetAddress()}">
             </k-table>` : ''}
       </div>
     `;

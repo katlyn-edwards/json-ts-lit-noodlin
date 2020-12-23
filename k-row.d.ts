@@ -26,6 +26,7 @@ export declare class KRow extends LitElement {
     private getCount;
     private getSize;
     private getTooltip;
+    private getOffsetAddress;
     private showToggle;
     private expand;
     private isExpandEnum;
