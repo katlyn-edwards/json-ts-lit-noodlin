@@ -57,8 +57,18 @@ export class KTable extends LitElement {
   @property({type: Boolean})
   isEnum = false;
 
+  @property({type: String})
+  parentAddress = '';
+
   private getVersionedData(version: string) {
     return this.data.filter((item: {[key: string]: unknown}) => version in (item.addr as {[key: string]: string}));
+  }
+
+  private getClasses() {
+    if (this.isEnum) {
+      return ['addr', 'desc']
+    }
+    return ['addr', 'size', 'desc'];
   }
 
   private getHeadings() {
@@ -76,7 +86,7 @@ export class KTable extends LitElement {
     return html`
       <div id="table">
         <div>
-          ${this.getHeadings().map(heading => html`<span>${heading}</span>`)}
+          ${this.getHeadings().map((heading, index) => html`<span class="${this.getClasses()[index]}">${heading}</span>`)}
         </div>
         <div>
           ${(this.version ? this.getVersionedData(this.version) : this.data)
@@ -87,7 +97,8 @@ export class KTable extends LitElement {
                   .enums="${this.enums}"
                   .version="${this.version}"
                   ?odd="${index % 2 == 0}"
-                  ?isEnum="${this.isEnum}">
+                  ?isEnum="${this.isEnum}"
+                  .parentAddress="${this.parentAddress}">
                   </k-row>`;
             })
           }

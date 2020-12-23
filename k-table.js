@@ -19,9 +19,16 @@ let KTable = class KTable extends LitElement {
         this.enums = {};
         this.version = '';
         this.isEnum = false;
+        this.parentAddress = '';
     }
     getVersionedData(version) {
         return this.data.filter((item) => version in item.addr);
+    }
+    getClasses() {
+        if (this.isEnum) {
+            return ['addr', 'desc'];
+        }
+        return ['addr', 'size', 'desc'];
     }
     getHeadings() {
         if (this.version) {
@@ -38,7 +45,7 @@ let KTable = class KTable extends LitElement {
         return html `
       <div id="table">
         <div>
-          ${this.getHeadings().map(heading => html `<span>${heading}</span>`)}
+          ${this.getHeadings().map((heading, index) => html `<span class="${this.getClasses()[index]}">${heading}</span>`)}
         </div>
         <div>
           ${(this.version ? this.getVersionedData(this.version) : this.data)
@@ -49,7 +56,8 @@ let KTable = class KTable extends LitElement {
                   .enums="${this.enums}"
                   .version="${this.version}"
                   ?odd="${index % 2 == 0}"
-                  ?isEnum="${this.isEnum}">
+                  ?isEnum="${this.isEnum}"
+                  .parentAddress="${this.parentAddress}">
                   </k-row>`;
         })}
         </div>
@@ -105,6 +113,9 @@ __decorate([
 __decorate([
     property({ type: Boolean })
 ], KTable.prototype, "isEnum", void 0);
+__decorate([
+    property({ type: String })
+], KTable.prototype, "parentAddress", void 0);
 KTable = __decorate([
     customElement('k-table')
 ], KTable);

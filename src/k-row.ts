@@ -85,6 +85,9 @@ export class KRow extends LitElement {
   @property({type: Boolean})
   isEnum = false;
 
+  @property({type: String})
+  parentAddress = '';
+
   private toHex(num: number): string {
     return num.toString(16).toUpperCase();
   }
@@ -130,12 +133,17 @@ export class KRow extends LitElement {
   }
 
   private getTooltip() {
-    const count = this.getCount();
-    if (count > 1) {
-      const size = this.getSize();
-      return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+    if (this.version ) {
+      const count = this.getCount();
+      if (count > 1) {
+        const size = this.getSize();
+        return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+      }
+      return '';
+    } else {
+      let off = parseInt(this.data.offset as string, 16);
+      return "Address: " + this.toHex(parseInt(this.parentAddress, 16) + off);
     }
-    return '';
   }
 
   private showToggle() {
@@ -161,22 +169,30 @@ export class KRow extends LitElement {
     return (this.structs[this.getExpandName()] as {[key: string]: unknown}).vars;
   }
 
-  private getAddress() {
+  private getAddress(): string {
     if (this.version) {
       return (this.data.addr as {[key: string]: string})[this.version]
     }
-    return this.data.offset;
+    return this.data.offset as string;
+  }
+
+  private shouldAddrHaveToolTip() {
+    return !this.version;
   }
 
   render() {
     return this.isEnum ?
     html`
-      <div>${this.data.val}</div>
-      <div>${this.data.desc}</div>` :
+      <div class="addr">${this.data.val}</div>
+      <div class="desc">${this.data.desc}</div>` :
     html`
-      <div class="addr">${this.getAddress()}</div>
+      <div class="addr">
+        <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
+              title="${this.shouldAddrHaveToolTip() ? this.getTooltip() : ''}">${this.getAddress()}</span>
+      </div>
       <div class="size">
-        <span class="${!!this.getTooltip() ? 'has-tooltip' : ''}" title="${this.getTooltip()}">${this.getLength()}</span>
+        <span class="${this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
+              title="${this.getTooltip()}">${this.getLength()}</span>
       </div>
       <div class="desc">${this.data.desc} ${this.showToggle() ?
           html`<span class="expand" @click="${this.expand}">[${this.expanded ? '-' : '+'}]</span>` :
@@ -185,7 +201,8 @@ export class KRow extends LitElement {
               .data="${this.getData()}"
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
-              .enums="${this.enums}">
+              .enums="${this.enums}"
+              .parentAddress="${this.version ? this.getAddress() : ''}">
             </k-table>` : ''}
       </div>
     `;

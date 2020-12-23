@@ -20,6 +20,7 @@ export declare class KRow extends LitElement {
     odd: boolean;
     expanded: boolean;
     isEnum: boolean;
+    parentAddress: string;
     private toHex;
     private getLength;
     private getCount;
@@ -31,6 +32,7 @@ export declare class KRow extends LitElement {
     private getExpandName;
     private getData;
     private getAddress;
+    private shouldAddrHaveToolTip;
     render(): import("lit-element").TemplateResult;
 }
 declare global {

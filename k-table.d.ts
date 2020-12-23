@@ -14,7 +14,9 @@ export declare class KTable extends LitElement {
     };
     version: string;
     isEnum: boolean;
+    parentAddress: string;
     private getVersionedData;
+    private getClasses;
     private getHeadings;
     render(): import("lit-element").TemplateResult;
 }

@@ -21,6 +21,7 @@ let KRow = class KRow extends LitElement {
         this.odd = false;
         this.expanded = false;
         this.isEnum = false;
+        this.parentAddress = '';
     }
     toHex(num) {
         return num.toString(16).toUpperCase();
@@ -64,12 +65,18 @@ let KRow = class KRow extends LitElement {
         return size;
     }
     getTooltip() {
-        const count = this.getCount();
-        if (count > 1) {
-            const size = this.getSize();
-            return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+        if (this.version) {
+            const count = this.getCount();
+            if (count > 1) {
+                const size = this.getSize();
+                return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+            }
+            return '';
         }
-        return '';
+        else {
+            let off = parseInt(this.data.offset, 16);
+            return "Address: " + this.toHex(parseInt(this.parentAddress, 16) + off);
+        }
     }
     showToggle() {
         return (this.isExpandEnum() || this.data.type in this.structs);
@@ -95,15 +102,22 @@ let KRow = class KRow extends LitElement {
         }
         return this.data.offset;
     }
+    shouldAddrHaveToolTip() {
+        return !this.version;
+    }
     render() {
         return this.isEnum ?
             html `
-      <div>${this.data.val}</div>
-      <div>${this.data.desc}</div>` :
+      <div class="addr">${this.data.val}</div>
+      <div class="desc">${this.data.desc}</div>` :
             html `
-      <div class="addr">${this.getAddress()}</div>
+      <div class="addr">
+        <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
+              title="${this.shouldAddrHaveToolTip() ? this.getTooltip() : ''}">${this.getAddress()}</span>
+      </div>
       <div class="size">
-        <span class="${!!this.getTooltip() ? 'has-tooltip' : ''}" title="${this.getTooltip()}">${this.getLength()}</span>
+        <span class="${this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
+              title="${this.getTooltip()}">${this.getLength()}</span>
       </div>
       <div class="desc">${this.data.desc} ${this.showToggle() ?
                 html `<span class="expand" @click="${this.expand}">[${this.expanded ? '-' : '+'}]</span>` :
@@ -112,7 +126,8 @@ let KRow = class KRow extends LitElement {
               .data="${this.getData()}"
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
-              .enums="${this.enums}">
+              .enums="${this.enums}"
+              .parentAddress="${this.version ? this.getAddress() : ''}">
             </k-table>` : ''}
       </div>
     `;
@@ -194,6 +209,9 @@ __decorate([
 __decorate([
     property({ type: Boolean })
 ], KRow.prototype, "isEnum", void 0);
+__decorate([
+    property({ type: String })
+], KRow.prototype, "parentAddress", void 0);
 KRow = __decorate([
     customElement('k-row')
 ], KRow);
