@@ -18,6 +18,10 @@ export declare class KTable extends LitElement {
     sortFn?: ((a: any, b: any) => number) | undefined;
     private getVersionedData;
     private getClasses;
+    highlight(result: {
+        row: number[];
+        key: string;
+    } | void): void;
     private getHeadings;
     private getData;
     private maybeSort;

@@ -75,6 +75,19 @@ export class KTable extends LitElement {
     return ['addr', 'size', 'desc'];
   }
 
+  highlight(result: {row: number[], key: string}|void) {
+    if (!result) {
+      return;
+    }
+    if (result.row.length == 1) {
+      let rowElement = this.shadowRoot?.querySelectorAll('k-row')[result.row[0]];
+      rowElement!.highlightCell(result.key);
+    } else {
+      // that row should expand, and recurse?
+      console.log(result.row);
+    }
+  }
+
   private getHeadings() {
     if (this.version) {
       return ['Address', 'Length', 'Description'];
@@ -99,7 +112,6 @@ export class KTable extends LitElement {
 
   private maybeSort(e: Event) {
     if ((e.target as HTMLElement).innerText.trim() == 'Description') {
-      console.log('I can sort this');
       this.sortFn = (a: {desc: string}, b: {desc: string}) => {
         if (a.desc < b.desc) {
           return -1;

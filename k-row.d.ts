@@ -23,6 +23,7 @@ export declare class KRow extends LitElement {
     parentAddress: string;
     private toHex;
     private getLength;
+    highlightCell(key: string): void;
     private getCount;
     private getSize;
     private getTooltip;

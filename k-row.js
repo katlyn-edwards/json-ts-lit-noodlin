@@ -32,6 +32,15 @@ let KRow = class KRow extends LitElement {
         const length = size * count;
         return this.toHex(length);
     }
+    highlightCell(key) {
+        var _a;
+        let element = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('.' + key);
+        element.scrollIntoView();
+        element.style.backgroundColor = 'lightblue';
+        setTimeout(() => {
+            element.style.backgroundColor = '';
+        }, 3000);
+    }
     getCount() {
         return "count" in this.data ? parseInt(this.data.count, 16) : 1;
     }
@@ -111,10 +120,10 @@ let KRow = class KRow extends LitElement {
     render() {
         return this.isEnum ?
             html `
-      <div class="addr">${this.data.val}</div>
+      <div class="addr val">${this.data.val}</div>
       <div class="desc">${this.data.desc}</div>` :
             html `
-      <div class="addr">
+      <div class="addr offset">
         <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
               title="${this.shouldAddrHaveToolTip() ? this.getTooltip() : ''}">${this.getAddress()}</span>
       </div>
