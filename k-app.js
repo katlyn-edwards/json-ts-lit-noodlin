@@ -79,6 +79,11 @@ let KApp = class KApp extends LitElement {
             if (indexLabel != -1) {
                 keys.splice(indexLabel, 1);
             }
+            // Remove 'type' key matches, since those point to structs.
+            indexLabel = keys.findIndex((v) => v == 'type');
+            if (indexLabel != -1) {
+                keys.splice(indexLabel, 1);
+            }
             rowStart.push(i);
             for (let j = 0; j < keys.length; j++) {
                 let thisKey = keys[j];
