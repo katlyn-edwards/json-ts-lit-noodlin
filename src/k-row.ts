@@ -100,24 +100,46 @@ export class KRow extends LitElement {
     return this.toHex(length);
   }
 
-  async highlightCell(key: string) {
+  async highlightCell(key: string, shouldScroll: boolean) {
     if (key == 'enum') {
       this.expanded = true;
     }
     await this.requestUpdate();
     let element = this.shadowRoot?.querySelector('.' + key)! as HTMLElement;
-    element.scrollIntoView(false);
+    if (shouldScroll) {
+      // Account for the sticky header.
+      const yOffset = -60;
+      const y =
+          element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({top: y, behavior: 'smooth'});
+    }
     element.classList.add('highlight');
-    setTimeout(() => {
-      element.classList.remove('highlight');
-    }, 1000);
   }
 
-  async highlightSubTable(result: {row: number[], key: string}) {
+  async highlightSubTable(
+      result: {row: number[], key: string}, shouldScroll: boolean) {
     this.expanded = true;
     await this.requestUpdate();
     let table = this.shadowRoot?.querySelector('k-table')!;
-    table.highlight(result);
+    table.highlight(result, shouldScroll);
+  }
+
+  clearHighlights() {
+    let highlights =
+        Array.from(this.shadowRoot?.querySelectorAll('.highlight')!);
+    highlights.forEach(el => el.classList.remove('highlight'));
+    if (this.expanded) {
+      let table = this.shadowRoot?.querySelector('k-table')!;
+      table.clearHighlights();
+    }
+  }
+
+  collapseAll() {
+    if (this.expanded) {
+      let table = this.shadowRoot?.querySelector('k-table')!;
+      table.collapseAll();
+    }
+    this.expanded = false;
   }
 
   private getCount() {

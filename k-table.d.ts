@@ -21,7 +21,9 @@ export declare class KTable extends LitElement {
     highlight(result: {
         row: number[];
         key: string;
-    } | void): void;
+    } | void, shouldScroll?: boolean): void;
+    clearHighlights(): void;
+    collapseAll(): void;
     private getHeadings;
     private getData;
     private maybeSort;

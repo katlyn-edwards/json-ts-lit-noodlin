@@ -70,16 +70,27 @@ export class KTable extends LitElement {
     return ['addr', 'size', 'desc'];
   }
 
-  highlight(result: {row: number[], key: string}|void) {
+  highlight(result: {row: number[], key: string}|void, shouldScroll = true) {
     if (!result) {
       return;
     }
     let rowElement = this.shadowRoot?.querySelectorAll('k-row')[result.row[0]]!;
     if (result.row.length == 1) {
-      rowElement.highlightCell(result.key);
+      rowElement.highlightCell(result.key, shouldScroll);
     } else {
-      rowElement.highlightSubTable({row: result.row.slice(1), key: result.key})
+      rowElement.highlightSubTable(
+          {row: result.row.slice(1), key: result.key}, shouldScroll)
     }
+  }
+
+  clearHighlights() {
+    let rows = Array.from(this.shadowRoot?.querySelectorAll('k-row')!);
+    rows.forEach(row => row.clearHighlights());
+  }
+
+  collapseAll() {
+    let rows = Array.from(this.shadowRoot?.querySelectorAll('k-row')!);
+    rows.forEach(row => row.collapseAll());
   }
 
   private getHeadings() {

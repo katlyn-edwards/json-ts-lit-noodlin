@@ -30,18 +30,28 @@ let KTable = class KTable extends LitElement {
         }
         return ['addr', 'size', 'desc'];
     }
-    highlight(result) {
+    highlight(result, shouldScroll = true) {
         var _a;
         if (!result) {
             return;
         }
         let rowElement = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row')[result.row[0]];
         if (result.row.length == 1) {
-            rowElement.highlightCell(result.key);
+            rowElement.highlightCell(result.key, shouldScroll);
         }
         else {
-            rowElement.highlightSubTable({ row: result.row.slice(1), key: result.key });
+            rowElement.highlightSubTable({ row: result.row.slice(1), key: result.key }, shouldScroll);
         }
+    }
+    clearHighlights() {
+        var _a;
+        let rows = Array.from((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row'));
+        rows.forEach(row => row.clearHighlights());
+    }
+    collapseAll() {
+        var _a;
+        let rows = Array.from((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row'));
+        rows.forEach(row => row.collapseAll());
     }
     getHeadings() {
         if (this.version) {

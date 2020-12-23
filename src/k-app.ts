@@ -22,6 +22,27 @@ export class KApp extends LitElement {
       position: sticky;
       top: 0;
     }
+
+    label,
+    input {
+      position: relative;
+      display: inline-block;
+      box-sizing: border-box;
+      width: 170px;
+      padding-right: 55px;
+    }
+
+    label::after {
+      content: attr(data-results);
+      position: absolute;
+      top: 4px;
+      left: 115px;
+      font-family: arial, helvetica, sans-serif;
+      font-size: 12px;
+      display: block;
+      color: rgba(0, 0, 0, 0.6);
+      font-weight: bold;
+    }
   `;
 
   @property({type: String}) version = 'U';
@@ -32,6 +53,10 @@ export class KApp extends LitElement {
 
   @property({type: Array}) ram: Array<{[key: string]: unknown}> = [];
 
+  @property({type: Number}) resultCount = 0;
+
+  @property({type: Number}) totalResults = 0;
+
   query = '';
   generator: Generator<{row: number[], key: string}, void, unknown>|undefined =
       undefined;
@@ -39,6 +64,11 @@ export class KApp extends LitElement {
   constructor() {
     super();
     this.fetchData();
+    document.body.addEventListener('keyup', (e: Event) => {
+      if ((e as KeyboardEvent).key == 'Escape') {
+        this.clearPreviousSearch();
+      }
+    })
   }
 
   private getVersionedData() {
@@ -69,21 +99,57 @@ export class KApp extends LitElement {
     }
   }
 
+  private searchButtonHandler() {
+    this.performSearch(this.shadowRoot?.querySelector('input')!.value || '');
+  }
+
+  private findAllButtonHandler() {
+    this.findAll(this.shadowRoot?.querySelector('input')!.value || '');
+  }
+
+  private findAll(query: string, highlight = true) {
+    this.clearPreviousSearch();
+    const gen = this.search(query, this.getVersionedData(), []);
+    let result = gen.next().value;
+    let resultCount = 0;
+    while (result) {
+      resultCount++;
+      if (highlight) {
+        this.shadowRoot?.querySelector('k-table')!.highlight(result, false);
+      }
+      result = gen.next().value;
+    }
+    return resultCount;
+  }
+
+  private clearPreviousSearch() {
+    this.shadowRoot?.querySelector('k-table')!.clearHighlights();
+  }
+
+  private collapseAll() {
+    this.shadowRoot?.querySelector('k-table')!.collapseAll();
+  }
+
   private performSearch(query: string) {
     if (!query) {
       return;
     }
 
+    this.clearPreviousSearch();
     if (query != this.query) {
       this.query = query;
+      this.totalResults = this.findAll(query, false);
       this.generator = this.search(query, this.getVersionedData(), []);
     }
     const result = this.generator!.next().value;
     if (!result) {
       this.query = '';
       this.generator = undefined;
+      this.resultCount = 0;
+      this.totalResults = 0;
       return;
     }
+    this.resultCount = this.resultCount + 1;
     // highlight that result
     this.shadowRoot?.querySelector('k-table')!.highlight(result);
   }
@@ -148,6 +214,10 @@ export class KApp extends LitElement {
     }
   }
 
+  getRenderedResultsCount(resultCount: number, totalResults: number) {
+    return resultCount ? resultCount + ' of ' + totalResults : ''
+  }
+
   render() {
     return html`
       <div>
@@ -161,14 +231,22 @@ export class KApp extends LitElement {
           </select>
           &nbsp;&nbsp;&nbsp;&nbsp;
           Search:
-          <input @keyup="${this.inputHandler}"/>
+          <label data-results="${
+        this.getRenderedResultsCount(this.resultCount, this.totalResults)}">
+            <input @keyup='${this.inputHandler}'/>
+          </label>
+          <button @click="${this.searchButtonHandler}">Find</button>
+          <button @click="${this.findAllButtonHandler}">Find All</button>
+          <button @click="${this.clearPreviousSearch}">Clear results</button>
+          <button @click="${this.collapseAll}">Collapse All</button>
         </p>
         <k-table
           .version="${this.version}"
           .data="${this.ram}"
           .structs="${this.structs}"
-          .enums="${this.enums}"></k-table>
-      </div>
+          .enums="${this.enums}"></k -
+         table><
+        /div>
     `;
   }
 

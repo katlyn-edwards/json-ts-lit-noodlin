@@ -14,6 +14,8 @@ export declare class KApp extends LitElement {
     ram: Array<{
         [key: string]: unknown;
     }>;
+    resultCount: number;
+    totalResults: number;
     query: string;
     generator: Generator<{
         row: number[];
@@ -24,6 +26,11 @@ export declare class KApp extends LitElement {
     private getVersions;
     fetchData(): Promise<void>;
     private inputHandler;
+    private searchButtonHandler;
+    private findAllButtonHandler;
+    private findAll;
+    private clearPreviousSearch;
+    private collapseAll;
     private performSearch;
     search(query: string, data: Array<{
         [key: string]: unknown;
@@ -31,6 +38,7 @@ export declare class KApp extends LitElement {
         row: number[];
         key: string;
     }>;
+    getRenderedResultsCount(resultCount: number, totalResults: number): string;
     render(): import("lit-element").TemplateResult;
     changeHandler(): void;
 }

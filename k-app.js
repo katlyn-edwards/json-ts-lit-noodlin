@@ -15,9 +15,16 @@ let KApp = class KApp extends LitElement {
         this.enums = {};
         this.structs = {};
         this.ram = [];
+        this.resultCount = 0;
+        this.totalResults = 0;
         this.query = '';
         this.generator = undefined;
         this.fetchData();
+        document.body.addEventListener('keyup', (e) => {
+            if (e.key == 'Escape') {
+                this.clearPreviousSearch();
+            }
+        });
     }
     getVersionedData() {
         return this.ram.filter((item) => this.version in item.addr);
@@ -42,21 +49,57 @@ let KApp = class KApp extends LitElement {
             this.performSearch(((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input')).value || '');
         }
     }
+    searchButtonHandler() {
+        var _a;
+        this.performSearch(((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input')).value || '');
+    }
+    findAllButtonHandler() {
+        var _a;
+        this.findAll(((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input')).value || '');
+    }
+    findAll(query, highlight = true) {
+        var _a;
+        this.clearPreviousSearch();
+        const gen = this.search(query, this.getVersionedData(), []);
+        let result = gen.next().value;
+        let resultCount = 0;
+        while (result) {
+            resultCount++;
+            if (highlight) {
+                ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result, false);
+            }
+            result = gen.next().value;
+        }
+        return resultCount;
+    }
+    clearPreviousSearch() {
+        var _a;
+        ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).clearHighlights();
+    }
+    collapseAll() {
+        var _a;
+        ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).collapseAll();
+    }
     performSearch(query) {
         var _a;
         if (!query) {
             return;
         }
+        this.clearPreviousSearch();
         if (query != this.query) {
             this.query = query;
+            this.totalResults = this.findAll(query, false);
             this.generator = this.search(query, this.getVersionedData(), []);
         }
         const result = this.generator.next().value;
         if (!result) {
             this.query = '';
             this.generator = undefined;
+            this.resultCount = 0;
+            this.totalResults = 0;
             return;
         }
+        this.resultCount = this.resultCount + 1;
         // highlight that result
         ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result);
     }
@@ -107,6 +150,9 @@ let KApp = class KApp extends LitElement {
             rowStart.pop();
         }
     }
+    getRenderedResultsCount(resultCount, totalResults) {
+        return resultCount ? resultCount + ' of ' + totalResults : '';
+    }
     render() {
         return html `
       <div>
@@ -118,14 +164,21 @@ let KApp = class KApp extends LitElement {
           </select>
           &nbsp;&nbsp;&nbsp;&nbsp;
           Search:
-          <input @keyup="${this.inputHandler}"/>
+          <label data-results="${this.getRenderedResultsCount(this.resultCount, this.totalResults)}">
+            <input @keyup='${this.inputHandler}'/>
+          </label>
+          <button @click="${this.searchButtonHandler}">Find</button>
+          <button @click="${this.findAllButtonHandler}">Find All</button>
+          <button @click="${this.clearPreviousSearch}">Clear results</button>
+          <button @click="${this.collapseAll}">Collapse All</button>
         </p>
         <k-table
           .version="${this.version}"
           .data="${this.ram}"
           .structs="${this.structs}"
-          .enums="${this.enums}"></k-table>
-      </div>
+          .enums="${this.enums}"></k -
+         table><
+        /div>
     `;
     }
     changeHandler() {
@@ -149,6 +202,27 @@ KApp.styles = css `
       position: sticky;
       top: 0;
     }
+
+    label,
+    input {
+      position: relative;
+      display: inline-block;
+      box-sizing: border-box;
+      width: 170px;
+      padding-right: 55px;
+    }
+
+    label::after {
+      content: attr(data-results);
+      position: absolute;
+      top: 4px;
+      left: 115px;
+      font-family: arial, helvetica, sans-serif;
+      font-size: 12px;
+      display: block;
+      color: rgba(0, 0, 0, 0.6);
+      font-weight: bold;
+    }
   `;
 __decorate([
     property({ type: String })
@@ -162,6 +236,12 @@ __decorate([
 __decorate([
     property({ type: Array })
 ], KApp.prototype, "ram", void 0);
+__decorate([
+    property({ type: Number })
+], KApp.prototype, "resultCount", void 0);
+__decorate([
+    property({ type: Number })
+], KApp.prototype, "totalResults", void 0);
 KApp = __decorate([
     customElement('k-app')
 ], KApp);

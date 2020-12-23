@@ -32,25 +32,44 @@ let KRow = class KRow extends LitElement {
         const length = size * count;
         return this.toHex(length);
     }
-    async highlightCell(key) {
+    async highlightCell(key, shouldScroll) {
         var _a;
         if (key == 'enum') {
             this.expanded = true;
         }
         await this.requestUpdate();
         let element = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('.' + key);
-        element.scrollIntoView(false);
+        if (shouldScroll) {
+            // Account for the sticky header.
+            const yOffset = -60;
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
         element.classList.add('highlight');
-        setTimeout(() => {
-            element.classList.remove('highlight');
-        }, 1000);
     }
-    async highlightSubTable(result) {
+    async highlightSubTable(result, shouldScroll) {
         var _a;
         this.expanded = true;
         await this.requestUpdate();
         let table = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table');
-        table.highlight(result);
+        table.highlight(result, shouldScroll);
+    }
+    clearHighlights() {
+        var _a, _b;
+        let highlights = Array.from((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('.highlight'));
+        highlights.forEach(el => el.classList.remove('highlight'));
+        if (this.expanded) {
+            let table = (_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('k-table');
+            table.clearHighlights();
+        }
+    }
+    collapseAll() {
+        var _a;
+        if (this.expanded) {
+            let table = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table');
+            table.collapseAll();
+        }
+        this.expanded = false;
     }
     getCount() {
         return 'count' in this.data ? parseInt(this.data.count, 16) : 1;
