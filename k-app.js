@@ -48,13 +48,10 @@ let KApp = class KApp extends LitElement {
             return;
         }
         if (query != this.query) {
-            console.log('new search term');
             this.query = query;
             this.generator = this.search(query, this.getVersionedData(), []);
         }
         const result = this.generator.next().value;
-        console.log(`I got a result!`);
-        console.log(result);
         if (!result) {
             this.query = '';
             this.generator = undefined;
@@ -64,8 +61,6 @@ let KApp = class KApp extends LitElement {
         ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result);
     }
     *search(query, data, rowStart) {
-        console.log(`search data: `);
-        console.log(data);
         for (let i = 0; i < data.length; i++) {
             let row = data[i];
             let keys = Object.keys(row);
@@ -94,7 +89,6 @@ let KApp = class KApp extends LitElement {
                 }
                 if (searchable.toLowerCase().indexOf(query.toLowerCase()) != -1) {
                     // This has the search term!
-                    console.log(`this is the match! ${searchable}`);
                     yield { row: rowStart, key: thisKey };
                 }
                 if (thisKey == 'desc' &&

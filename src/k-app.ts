@@ -75,13 +75,10 @@ export class KApp extends LitElement {
     }
 
     if (query != this.query) {
-      console.log('new search term');
       this.query = query;
       this.generator = this.search(query, this.getVersionedData(), []);
     }
     const result = this.generator!.next().value;
-    console.log(`I got a result!`)
-    console.log(result);
     if (!result) {
       this.query = '';
       this.generator = undefined;
@@ -95,8 +92,6 @@ export class KApp extends LitElement {
       search(
           query: string, data: Array<{[key: string]: unknown}>,
           rowStart: number[]): Generator<{row: number[], key: string}> {
-    console.log(`search data: `)
-    console.log(data);
     for (let i = 0; i < data.length; i++) {
       let row = data[i] as {[key: string]: unknown};
       let keys = Object.keys(row);
@@ -127,7 +122,6 @@ export class KApp extends LitElement {
         }
         if (searchable.toLowerCase().indexOf(query.toLowerCase()) != -1) {
           // This has the search term!
-          console.log(`this is the match! ${searchable}`)
           yield {row: rowStart, key: thisKey};
         }
         if (thisKey == 'desc' &&
