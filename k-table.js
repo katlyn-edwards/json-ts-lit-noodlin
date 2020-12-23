@@ -4,7 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html, customElement, property, css } from 'lit-element';
+import { css, customElement, html, LitElement, property } from 'lit-element';
 /**
  * Renders a table.
  */
@@ -35,13 +35,12 @@ let KTable = class KTable extends LitElement {
         if (!result) {
             return;
         }
+        let rowElement = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row')[result.row[0]];
         if (result.row.length == 1) {
-            let rowElement = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row')[result.row[0]];
             rowElement.highlightCell(result.key);
         }
         else {
-            // that row should expand, and recurse?
-            console.log(result.row);
+            rowElement.highlightSubTable({ row: result.row.slice(1), key: result.key });
         }
     }
     getHeadings() {
@@ -95,13 +94,14 @@ let KTable = class KTable extends LitElement {
                   ${heading}
                 </span>
                 <span class="sort">
-                  ${((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ? html `▾` : html `&nbsp;&nbsp;`}
+                  ${((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ?
+            html `▾` :
+            html `&nbsp;&nbsp;`}
                 </span>
               </span>`)}
         </div>
         <div>
-          ${this.getData()
-            .map((item, index) => {
+          ${this.getData().map((item, index) => {
             return html `<k-row
                   .data="${item}"
                   .structs="${this.structs}"

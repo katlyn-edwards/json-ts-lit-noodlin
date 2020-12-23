@@ -23,7 +23,11 @@ export declare class KRow extends LitElement {
     parentAddress: string;
     private toHex;
     private getLength;
-    highlightCell(key: string): void;
+    highlightCell(key: string): Promise<void>;
+    highlightSubTable(result: {
+        row: number[];
+        key: string;
+    }): Promise<void>;
     private getCount;
     private getSize;
     private getTooltip;

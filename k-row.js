@@ -4,7 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html, customElement, property, css } from 'lit-element';
+import { css, customElement, html, LitElement, property } from 'lit-element';
 /**
  * Renders a single row in a table.
  */
@@ -32,8 +32,12 @@ let KRow = class KRow extends LitElement {
         const length = size * count;
         return this.toHex(length);
     }
-    highlightCell(key) {
+    async highlightCell(key) {
         var _a;
+        if (key == 'enum') {
+            this.expanded = true;
+        }
+        await this.requestUpdate();
         let element = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('.' + key);
         element.scrollIntoView();
         element.style.backgroundColor = 'lightblue';
@@ -41,8 +45,15 @@ let KRow = class KRow extends LitElement {
             element.style.backgroundColor = '';
         }, 3000);
     }
+    async highlightSubTable(result) {
+        var _a;
+        this.expanded = true;
+        await this.requestUpdate();
+        let table = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table');
+        table.highlight(result);
+    }
     getCount() {
-        return "count" in this.data ? parseInt(this.data.count, 16) : 1;
+        return 'count' in this.data ? parseInt(this.data.count, 16) : 1;
     }
     getSize() {
         let size;
@@ -51,19 +62,19 @@ let KRow = class KRow extends LitElement {
         }
         else {
             switch (this.data.type) {
-                case "u8":
-                case "s8":
-                case "flags8":
+                case 'u8':
+                case 's8':
+                case 'flags8':
                     size = 1;
                     break;
-                case "u16":
-                case "s16":
-                case "flags16":
+                case 'u16':
+                case 's16':
+                case 'flags16':
                     size = 2;
                     break;
-                case "u32":
-                case "s32":
-                case "pointer":
+                case 'u32':
+                case 's32':
+                case 'pointer':
                     size = 4;
                     break;
                 default:
@@ -78,12 +89,12 @@ let KRow = class KRow extends LitElement {
             const count = this.getCount();
             if (count > 1) {
                 const size = this.getSize();
-                return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+                return 'Size: ' + this.toHex(size) + '\nCount: ' + this.toHex(count);
             }
             return '';
         }
         else {
-            return "Address: " + this.getOffsetAddress();
+            return 'Address: ' + this.getOffsetAddress();
         }
     }
     getOffsetAddress() {
@@ -97,16 +108,18 @@ let KRow = class KRow extends LitElement {
         this.expanded = !this.expanded;
     }
     isExpandEnum() {
-        return "enum" in this.data;
+        return 'enum' in this.data;
     }
     getExpandName() {
-        return this.isExpandEnum() ? this.data.enum : this.data.type;
+        return this.isExpandEnum() ? this.data.enum :
+            this.data.type;
     }
     getData() {
         if (this.isExpandEnum()) {
             return this.enums[this.getExpandName()];
         }
-        return this.structs[this.getExpandName()].vars;
+        return this.structs[this.getExpandName()]
+            .vars;
     }
     getAddress() {
         if (this.version) {
@@ -125,7 +138,8 @@ let KRow = class KRow extends LitElement {
             html `
       <div class="addr offset">
         <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
-              title="${this.shouldAddrHaveToolTip() ? this.getTooltip() : ''}">${this.getAddress()}</span>
+              title="${this.shouldAddrHaveToolTip() ? this.getTooltip() :
+                ''}">${this.getAddress()}</span>
       </div>
       <div class="size">
         <span class="${this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
@@ -139,8 +153,10 @@ let KRow = class KRow extends LitElement {
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
               .enums="${this.enums}"
-              .parentAddress="${this.version ? this.getAddress() : this.getOffsetAddress()}">
-            </k-table>` : ''}
+              .parentAddress="${this.version ? this.getAddress() :
+                this.getOffsetAddress()}">
+            </k-table>` :
+                ''}
       </div>
     `;
     }

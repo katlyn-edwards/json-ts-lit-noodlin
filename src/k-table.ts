@@ -1,4 +1,4 @@
-import {LitElement, html, customElement, property, css} from 'lit-element';
+import {css, customElement, html, LitElement, property} from 'lit-element';
 
 /**
  * Renders a table.
@@ -43,29 +43,24 @@ export class KTable extends LitElement {
   /**
    * The JSON data to render.
    */
-  @property({type: Array})
-  data = [];
+  @property({type: Array}) data = [];
 
-  @property({type: Object})
-  structs = {};
+  @property({type: Object}) structs = {};
 
-  @property({type: Object})
-  enums = {} as {[key: string]: unknown};
+  @property({type: Object}) enums = {} as {[key: string]: unknown};
 
-  @property({type: String, reflect: true})
-  version = '';
+  @property({type: String, reflect: true}) version = '';
 
-  @property({type: Boolean})
-  isEnum = false;
+  @property({type: Boolean}) isEnum = false;
 
-  @property({type: String})
-  parentAddress = '';
+  @property({type: String}) parentAddress = '';
 
-  @property({type: Function})
-  sortFn?: ((a: any, b: any) => number)|undefined;
+  @property({type: Function}) sortFn?: ((a: any, b: any) => number)|undefined;
 
   private getVersionedData(version: string) {
-    return this.data.filter((item: {[key: string]: unknown}) => version in (item.addr as {[key: string]: string}));
+    return this.data.filter(
+        (item: {[key: string]: unknown}) =>
+            version in (item.addr as {[key: string]: string}));
   }
 
   private getClasses() {
@@ -79,12 +74,11 @@ export class KTable extends LitElement {
     if (!result) {
       return;
     }
+    let rowElement = this.shadowRoot?.querySelectorAll('k-row')[result.row[0]]!;
     if (result.row.length == 1) {
-      let rowElement = this.shadowRoot?.querySelectorAll('k-row')[result.row[0]];
-      rowElement!.highlightCell(result.key);
+      rowElement.highlightCell(result.key);
     } else {
-      // that row should expand, and recurse?
-      console.log(result.row);
+      rowElement.highlightSubTable({row: result.row.slice(1), key: result.key})
     }
   }
 
@@ -130,21 +124,26 @@ export class KTable extends LitElement {
     return html`
       <div id="table">
         <div>
-          ${this.getHeadings().map((heading, index) => html`
+          ${
+        this.getHeadings().map(
+            (heading, index) => html`
               <span class="heading ${this.getClasses()[index]}"
                     @click="${this.maybeSort}">
                 <span>
                   ${heading}
                 </span>
                 <span class="sort">
-                  ${((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ? html`▾` : html`&nbsp;&nbsp;`}
+                  ${
+                ((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ?
+                    html`▾` :
+                    html`&nbsp;&nbsp;`}
                 </span>
               </span>`)}
         </div>
         <div>
-          ${this.getData()
-            .map((item: {[key: string]: unknown}, index: number) => {
-              return html`<k-row
+          ${
+        this.getData().map((item: {[key: string]: unknown}, index: number) => {
+          return html`<k-row
                   .data="${item}"
                   .structs="${this.structs}"
                   .enums="${this.enums}"
@@ -153,8 +152,7 @@ export class KTable extends LitElement {
                   ?isEnum="${this.isEnum}"
                   .parentAddress="${this.parentAddress}">
                   </k-row>`;
-            })
-          }
+        })}
         </div>
       </div>
     `;

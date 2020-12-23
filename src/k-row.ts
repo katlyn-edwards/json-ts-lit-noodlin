@@ -1,4 +1,4 @@
-import {LitElement, html, customElement, property, css} from 'lit-element';
+import {css, customElement, html, LitElement, property} from 'lit-element';
 
 /**
  * Renders a single row in a table.
@@ -64,29 +64,21 @@ export class KRow extends LitElement {
   /**
    * The JSON data to render.
    */
-  @property({type: Object})
-  data = {} as {[key: string]: unknown};
+  @property({type: Object}) data = {} as {[key: string]: unknown};
 
-  @property({type: Object})
-  structs = {} as {[key: string]: unknown};
+  @property({type: Object}) structs = {} as {[key: string]: unknown};
 
-  @property({type: Object})
-  enums = {} as {[key: string]: unknown};
+  @property({type: Object}) enums = {} as {[key: string]: unknown};
 
-  @property({type: String})
-  version = '';
+  @property({type: String}) version = '';
 
-  @property({type: Boolean, reflect: true})
-  odd = false;
+  @property({type: Boolean, reflect: true}) odd = false;
 
-  @property({type: Boolean, reflect: true})
-  expanded = false;
+  @property({type: Boolean, reflect: true}) expanded = false;
 
-  @property({type: Boolean})
-  isEnum = false;
+  @property({type: Boolean}) isEnum = false;
 
-  @property({type: String})
-  parentAddress = '';
+  @property({type: String}) parentAddress = '';
 
   private toHex(num: number): string {
     return num.toString(16).toUpperCase();
@@ -99,7 +91,11 @@ export class KRow extends LitElement {
     return this.toHex(length);
   }
 
-  highlightCell(key: string) {
+  async highlightCell(key: string) {
+    if (key == 'enum') {
+      this.expanded = true;
+    }
+    await this.requestUpdate();
     let element = this.shadowRoot?.querySelector('.' + key)! as HTMLElement;
     element.scrollIntoView();
     element.style.backgroundColor = 'lightblue';
@@ -108,8 +104,15 @@ export class KRow extends LitElement {
     }, 3000);
   }
 
+  async highlightSubTable(result: {row: number[], key: string}) {
+    this.expanded = true;
+    await this.requestUpdate();
+    let table = this.shadowRoot?.querySelector('k-table')!;
+    table.highlight(result);
+  }
+
   private getCount() {
-    return "count" in this.data ? parseInt(this.data.count as string, 16) : 1;
+    return 'count' in this.data ? parseInt(this.data.count as string, 16) : 1;
   }
 
   private getSize() {
@@ -117,24 +120,26 @@ export class KRow extends LitElement {
     if (this.data.size) {
       size = parseInt(this.data.size as string, 16);
     } else {
-      switch(this.data.type) {
-        case "u8":
-        case "s8":
-        case "flags8":
+      switch (this.data.type) {
+        case 'u8':
+        case 's8':
+        case 'flags8':
           size = 1;
           break;
-        case "u16":
-        case "s16":
-        case "flags16":
+        case 'u16':
+        case 's16':
+        case 'flags16':
           size = 2;
           break;
-        case "u32":
-        case "s32":
-        case "pointer":
+        case 'u32':
+        case 's32':
+        case 'pointer':
           size = 4;
           break;
         default:
-          size = parseInt((this.structs[this.data.type as string] as {size: string}).size, 16);
+          size = parseInt(
+              (this.structs[this.data.type as string] as {size: string}).size,
+              16);
           break;
       }
     }
@@ -142,15 +147,15 @@ export class KRow extends LitElement {
   }
 
   private getTooltip() {
-    if (this.version ) {
+    if (this.version) {
       const count = this.getCount();
       if (count > 1) {
         const size = this.getSize();
-        return "Size: " + this.toHex(size) + "\nCount: " + this.toHex(count);
+        return 'Size: ' + this.toHex(size) + '\nCount: ' + this.toHex(count);
       }
       return '';
     } else {
-      return "Address: " + this.getOffsetAddress();
+      return 'Address: ' + this.getOffsetAddress();
     }
   }
 
@@ -168,18 +173,20 @@ export class KRow extends LitElement {
   }
 
   private isExpandEnum() {
-    return "enum" in this.data;
+    return 'enum' in this.data;
   }
 
   private getExpandName(): string {
-    return this.isExpandEnum() ? this.data.enum as string: this.data.type as string;
+    return this.isExpandEnum() ? this.data.enum as string :
+                                 this.data.type as string;
   }
 
   private getData() {
     if (this.isExpandEnum()) {
       return this.enums[this.getExpandName()];
     }
-    return (this.structs[this.getExpandName()] as {[key: string]: unknown}).vars;
+    return (this.structs[this.getExpandName()] as {[key: string]: unknown})
+        .vars;
   }
 
   private getAddress(): string {
@@ -195,28 +202,37 @@ export class KRow extends LitElement {
 
   render() {
     return this.isEnum ?
-    html`
+        html`
       <div class="addr val">${this.data.val}</div>
       <div class="desc">${this.data.desc}</div>` :
-    html`
+        html`
       <div class="addr offset">
         <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
-              title="${this.shouldAddrHaveToolTip() ? this.getTooltip() : ''}">${this.getAddress()}</span>
+              title="${
+            this.shouldAddrHaveToolTip() ? this.getTooltip() :
+                                           ''}">${this.getAddress()}</span>
       </div>
       <div class="size">
-        <span class="${this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
+        <span class="${
+            this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
               title="${this.getTooltip()}">${this.getLength()}</span>
       </div>
-      <div class="desc">${this.data.desc} ${this.showToggle() ?
-          html`<span class="expand" @click="${this.expand}">[${this.expanded ? '-' : '+'}]</span>` :
-          ''}
-          ${this.expanded ? html`<k-table
+      <div class="desc">${this.data.desc} ${
+            this.showToggle() ?
+                html`<span class="expand" @click="${this.expand}">[${
+                    this.expanded ? '-' : '+'}]</span>` :
+                ''}
+          ${
+            this.expanded ? html`<k-table
               .data="${this.getData()}"
               ?isEnum="${this.isExpandEnum()}"
               .structs="${this.structs}"
               .enums="${this.enums}"
-              .parentAddress="${this.version ? this.getAddress() : this.getOffsetAddress()}">
-            </k-table>` : ''}
+              .parentAddress="${
+                                this.version ? this.getAddress() :
+                                               this.getOffsetAddress()}">
+            </k-table>` :
+                            ''}
       </div>
     `;
   }
