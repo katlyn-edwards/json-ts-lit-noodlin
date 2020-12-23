@@ -209,6 +209,7 @@ KApp.styles = css `
       display: inline-block;
       box-sizing: border-box;
       width: 170px;
+      /** 170 - 115 left position below */
       padding-right: 55px;
     }
 
