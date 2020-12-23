@@ -39,11 +39,11 @@ let KRow = class KRow extends LitElement {
         }
         await this.requestUpdate();
         let element = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('.' + key);
-        element.scrollIntoView();
-        element.style.backgroundColor = 'lightblue';
+        element.scrollIntoView(false);
+        element.classList.add('highlight');
         setTimeout(() => {
-            element.style.backgroundColor = '';
-        }, 3000);
+            element.classList.remove('highlight');
+        }, 1000);
     }
     async highlightSubTable(result) {
         var _a;
@@ -188,6 +188,11 @@ KRow.styles = css `
       text-overflow: ellipsis;
     }
 
+    div,
+    span {
+      transition: background-color .5s linear;
+    }
+
     .size {
       flex: none;
       text-align: right;
@@ -214,6 +219,10 @@ KRow.styles = css `
       cursor: pointer;
       text-decoration: underline;
       color: var(--k-blue);
+    }
+
+    .highlight {
+      background-color: lightblue;
     }
   `;
 __decorate([

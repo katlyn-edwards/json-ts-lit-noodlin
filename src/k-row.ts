@@ -32,6 +32,11 @@ export class KRow extends LitElement {
       text-overflow: ellipsis;
     }
 
+    div,
+    span {
+      transition: background-color .5s linear;
+    }
+
     .size {
       flex: none;
       text-align: right;
@@ -58,6 +63,10 @@ export class KRow extends LitElement {
       cursor: pointer;
       text-decoration: underline;
       color: var(--k-blue);
+    }
+
+    .highlight {
+      background-color: lightblue;
     }
   `;
 
@@ -97,11 +106,11 @@ export class KRow extends LitElement {
     }
     await this.requestUpdate();
     let element = this.shadowRoot?.querySelector('.' + key)! as HTMLElement;
-    element.scrollIntoView();
-    element.style.backgroundColor = 'lightblue';
+    element.scrollIntoView(false);
+    element.classList.add('highlight');
     setTimeout(() => {
-      element.style.backgroundColor = '';
-    }, 3000);
+      element.classList.remove('highlight');
+    }, 1000);
   }
 
   async highlightSubTable(result: {row: number[], key: string}) {
