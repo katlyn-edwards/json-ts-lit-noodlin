@@ -19,6 +19,7 @@ let KApp = class KApp extends LitElement {
         this.totalResults = 0;
         this.query = '';
         this.generator = undefined;
+        this.seenResults = [];
         this.fetchData();
         document.body.addEventListener('keyup', (e) => {
             if (e.key == 'Escape') {
@@ -47,8 +48,9 @@ let KApp = class KApp extends LitElement {
     }
     inputHandler(e) {
         var _a;
-        if (e.key == 'Enter') {
-            this.performSearch(((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input')).value || '');
+        let ke = e;
+        if (ke.key == 'Enter') {
+            this.performSearch(((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('input')).value || '', !ke.shiftKey);
         }
     }
     searchButtonHandler() {
@@ -72,7 +74,7 @@ let KApp = class KApp extends LitElement {
             }
             result = gen.next().value;
         }
-        if (highlight) {
+        if (highlight && resultCount) {
             this.resultCount = 1;
             this.totalResults = resultCount;
         }
@@ -81,6 +83,8 @@ let KApp = class KApp extends LitElement {
     clearPreviousSearch(clearInput = true) {
         if (clearInput) {
             this.shadowRoot.querySelector('input').value = '';
+            this.resultCount = 0;
+            this.totalResults = 0;
         }
         this.shadowRoot.querySelector('k-table').clearHighlights();
     }
@@ -88,8 +92,8 @@ let KApp = class KApp extends LitElement {
         var _a;
         ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).collapseAll();
     }
-    performSearch(query) {
-        var _a;
+    async performSearch(query, forward = true) {
+        var _a, _b, _c;
         if (!query) {
             return;
         }
@@ -99,6 +103,22 @@ let KApp = class KApp extends LitElement {
             this.totalResults = this.findAll(query, false);
             this.generator = this.search(query, this.getVersionedData(), []);
         }
+        if (!forward && this.seenResults.length && this.resultCount > 0) {
+            // go backwards to previous result
+            this.resultCount = this.resultCount - 1;
+            let result = this.seenResults[this.resultCount - 1];
+            ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result);
+            await Promise.resolve();
+            return;
+        }
+        if (this.resultCount < this.seenResults.length) {
+            // forwards through already generated results
+            this.resultCount++;
+            let result = this.seenResults[this.resultCount - 1];
+            ((_b = this.shadowRoot) === null || _b === void 0 ? void 0 : _b.querySelector('k-table')).highlight(result);
+            await Promise.resolve();
+            return;
+        }
         const result = this.generator.next().value;
         if (!result) {
             this.query = '';
@@ -107,9 +127,13 @@ let KApp = class KApp extends LitElement {
             this.totalResults = 0;
             return;
         }
+        // Fuck deep copies of objects with arrays.
+        let storage = Object.assign({}, result);
+        storage.row = storage.row.slice();
+        this.seenResults.push(storage);
         this.resultCount = this.resultCount + 1;
         // highlight that result
-        ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result);
+        ((_c = this.shadowRoot) === null || _c === void 0 ? void 0 : _c.querySelector('k-table')).highlight(result);
     }
     *search(query, data, rowStart) {
         for (let i = 0; i < data.length; i++) {

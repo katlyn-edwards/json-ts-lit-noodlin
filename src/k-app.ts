@@ -61,6 +61,7 @@ export class KApp extends LitElement {
   query = '';
   generator: Generator<{row: number[], key: string}, void, unknown>|undefined =
       undefined;
+  seenResults: Array<{row: number[], key: string}> = [];
 
   constructor() {
     super();
@@ -97,8 +98,10 @@ export class KApp extends LitElement {
   }
 
   private inputHandler(e: Event) {
-    if ((e as KeyboardEvent).key == 'Enter') {
-      this.performSearch(this.shadowRoot?.querySelector('input')!.value || '');
+    let ke = (e as KeyboardEvent);
+    if (ke.key == 'Enter') {
+      this.performSearch(
+          this.shadowRoot?.querySelector('input')!.value || '', !ke.shiftKey);
     }
   }
 
@@ -123,7 +126,7 @@ export class KApp extends LitElement {
       }
       result = gen.next().value;
     }
-    if (highlight) {
+    if (highlight && resultCount) {
       this.resultCount = 1;
       this.totalResults = resultCount;
     }
@@ -133,6 +136,8 @@ export class KApp extends LitElement {
   private clearPreviousSearch(clearInput: boolean = true) {
     if (clearInput) {
       this.shadowRoot!.querySelector('input')!.value = '';
+      this.resultCount = 0;
+      this.totalResults = 0;
     }
     this.shadowRoot!.querySelector('k-table')!.clearHighlights();
   }
@@ -141,7 +146,7 @@ export class KApp extends LitElement {
     this.shadowRoot?.querySelector('k-table')!.collapseAll();
   }
 
-  private performSearch(query: string) {
+  private async performSearch(query: string, forward = true) {
     if (!query) {
       return;
     }
@@ -152,6 +157,22 @@ export class KApp extends LitElement {
       this.totalResults = this.findAll(query, false);
       this.generator = this.search(query, this.getVersionedData(), []);
     }
+    if (!forward && this.seenResults.length && this.resultCount > 0) {
+      // go backwards to previous result
+      this.resultCount = this.resultCount - 1;
+      let result = this.seenResults[this.resultCount - 1];
+      this.shadowRoot?.querySelector('k-table')!.highlight(result);
+      await Promise.resolve();
+      return;
+    }
+    if (this.resultCount < this.seenResults.length) {
+      // forwards through already generated results
+      this.resultCount++;
+      let result = this.seenResults[this.resultCount - 1];
+      this.shadowRoot?.querySelector('k-table')!.highlight(result);
+      await Promise.resolve();
+      return;
+    }
     const result = this.generator!.next().value;
     if (!result) {
       this.query = '';
@@ -160,6 +181,10 @@ export class KApp extends LitElement {
       this.totalResults = 0;
       return;
     }
+    // Fuck deep copies of objects with arrays.
+    let storage = Object.assign({}, result);
+    storage.row = storage.row.slice();
+    this.seenResults.push(storage);
     this.resultCount = this.resultCount + 1;
     // highlight that result
     this.shadowRoot?.querySelector('k-table')!.highlight(result);

@@ -21,6 +21,10 @@ export declare class KApp extends LitElement {
         row: number[];
         key: string;
     }, void, unknown> | undefined;
+    seenResults: Array<{
+        row: number[];
+        key: string;
+    }>;
     constructor();
     private getVersionedData;
     private getVersions;
