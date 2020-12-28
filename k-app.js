@@ -68,7 +68,7 @@ let KApp = class KApp extends LitElement {
         while (result) {
             resultCount++;
             if (highlight) {
-                ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result, false);
+                ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).highlight(result, resultCount == 1);
             }
             result = gen.next().value;
         }

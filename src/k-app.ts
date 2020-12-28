@@ -118,7 +118,8 @@ export class KApp extends LitElement {
     while (result) {
       resultCount++;
       if (highlight) {
-        this.shadowRoot?.querySelector('k-table')!.highlight(result, false);
+        this.shadowRoot?.querySelector('k-table')!.highlight(
+            result, resultCount == 1);
       }
       result = gen.next().value;
     }
