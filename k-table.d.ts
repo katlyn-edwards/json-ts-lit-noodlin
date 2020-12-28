@@ -16,6 +16,8 @@ export declare class KTable extends LitElement {
     isEnum: boolean;
     parentAddress: string;
     sortFn?: ((a: any, b: any) => number) | undefined;
+    sortAscending: boolean;
+    sortedHeading: string;
     private getVersionedData;
     private getClasses;
     highlight(result: {

@@ -27,7 +27,7 @@ export class KTable extends LitElement {
 
     .addr {
       text-align: right;
-      width: 20%;
+      width: 15%;
     }
 
     .desc {
@@ -56,6 +56,10 @@ export class KTable extends LitElement {
   @property({type: String}) parentAddress = '';
 
   @property({type: Function}) sortFn?: ((a: any, b: any) => number)|undefined;
+
+  @property({type: Boolean}) sortAscending = true;
+
+  @property({type: String}) sortedHeading = 'Address';
 
   private getVersionedData(version: string) {
     return this.data.filter(
@@ -104,11 +108,11 @@ export class KTable extends LitElement {
     }
   }
 
-  private getData() {
+  private getData(sortFn: ((a: any, b: any) => number)|undefined) {
     const data = this.version ? this.getVersionedData(this.version) : this.data;
-    if (this.sortFn) {
+    if (sortFn) {
       let sortedData = data.slice();
-      sortedData.sort(this.sortFn!);
+      sortedData.sort(sortFn);
       return sortedData;
     } else {
       return data;
@@ -116,17 +120,49 @@ export class KTable extends LitElement {
   }
 
   private maybeSort(e: Event) {
-    if ((e.target as HTMLElement).innerText.trim() == 'Description') {
-      this.sortFn = (a: {desc: string}, b: {desc: string}) => {
-        if (a.desc < b.desc) {
-          return -1;
-        } else if (a.desc > b.desc) {
-          return 1;
-        } else {
-          return 0;
-        }
-      }
+    const columnHeadings = ['Address', 'Value', 'Offset', 'Description'];
+    const columnKeys = ['addr', 'val', 'offset', 'desc'];
+    const labelEl =
+        (e.target as HTMLElement).parentElement?.querySelector('.label')! as
+        HTMLElement;
+    const sortEl =
+        (e.target as HTMLElement).parentElement?.querySelector('.sort')! as
+        HTMLElement;
+    // Are we sorting by increasing or decreasing?
+    if (sortEl.textContent?.trim()) {
+      // Previously sorted, flip direction.
+      this.sortAscending = !this.sortAscending;
+    }
+    if (columnHeadings.includes(labelEl.innerText.trim())) {
+      this.sortedHeading = labelEl.innerText.trim();
+      let keyIndex = columnHeadings.indexOf(labelEl.innerText.trim());
+      let key = columnKeys[keyIndex];
+      this.sortFn =
+          (a: {[key: string]: unknown}, b: {[key: string]: unknown}) => {
+            if (key == 'addr') {
+              if (parseInt((a[key] as {[key: string]: string})[this.version]) <
+                  parseInt((b[key] as {[key: string]:
+                                           string})[this.version as string])) {
+                return this.sortAscending ? -1 : 1;
+              } else if (
+                  parseInt((a[key] as {[key: string]: string})[this.version]) >
+                  parseInt((b[key] as {[key: string]: string})[this.version])) {
+                return this.sortAscending ? 1 : -1;
+              } else {
+                return 0;
+              }
+            } else {
+              if ((a[key] as string) < (b[key] as string)) {
+                return this.sortAscending ? -1 : 1;
+              } else if ((a[key] as string) > (b[key] as string)) {
+                return this.sortAscending ? 1 : -1;
+              } else {
+                return 0;
+              }
+            }
+          }
     } else {
+      this.sortedHeading = '';
       this.sortFn = undefined;
     }
   }
@@ -140,21 +176,20 @@ export class KTable extends LitElement {
             (heading, index) => html`
               <span class="heading ${this.getClasses()[index]}"
                     @click="${this.maybeSort}">
-                <span>
+                <span class="label">
                   ${heading}
                 </span>
                 <span class="sort">
                   ${
-                ((this.sortFn && index == 2) || (!this.sortFn && index == 0)) ?
-                    html`▾` :
-                    html`&nbsp;&nbsp;`}
+                (this.sortedHeading == heading) ? html`▾` : html`&nbsp;&nbsp;`}
                 </span>
               </span>`)}
         </div>
         <div>
           ${
-        this.getData().map((item: {[key: string]: unknown}, index: number) => {
-          return html`<k-row
+        this.getData(this.sortFn)
+            .map((item: {[key: string]: unknown}, index: number) => {
+              return html`<k-row
                   .data="${item}"
                   .structs="${this.structs}"
                   .enums="${this.enums}"
@@ -163,7 +198,7 @@ export class KTable extends LitElement {
                   ?isEnum="${this.isEnum}"
                   .parentAddress="${this.parentAddress}">
                   </k-row>`;
-        })}
+            })}
         </div>
       </div>
     `;

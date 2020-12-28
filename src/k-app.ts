@@ -67,7 +67,7 @@ export class KApp extends LitElement {
     this.fetchData();
     document.body.addEventListener('keyup', (e: Event) => {
       if ((e as KeyboardEvent).key == 'Escape') {
-        this.clearPreviousSearch();
+        this.clearPreviousSearch(false);
       }
     })
   }
@@ -85,6 +85,8 @@ export class KApp extends LitElement {
   async fetchData() {
     // TODO(katlyn): You can remove the proxy once hosting.
     const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    // TODO(katlyn): /zm/json doesn't work because of BG0Property
+    // not being defined on enums.
     const targetBaseUrl = 'http://labk.org/maps/mf/json/';
     this.enums = await fetch(proxyUrl + targetBaseUrl + 'enums.json')
                      .then(response => response.json());
@@ -109,7 +111,7 @@ export class KApp extends LitElement {
   }
 
   private findAll(query: string, highlight = true) {
-    this.clearPreviousSearch();
+    this.clearPreviousSearch(false);
     const gen = this.search(query, this.getVersionedData(), []);
     let result = gen.next().value;
     let resultCount = 0;
@@ -120,11 +122,18 @@ export class KApp extends LitElement {
       }
       result = gen.next().value;
     }
+    if (highlight) {
+      this.resultCount = 1;
+      this.totalResults = resultCount;
+    }
     return resultCount;
   }
 
-  private clearPreviousSearch() {
-    this.shadowRoot?.querySelector('k-table')!.clearHighlights();
+  private clearPreviousSearch(clearInput: boolean = true) {
+    if (clearInput) {
+      this.shadowRoot!.querySelector('input')!.value = '';
+    }
+    this.shadowRoot!.querySelector('k-table')!.clearHighlights();
   }
 
   private collapseAll() {
@@ -136,7 +145,7 @@ export class KApp extends LitElement {
       return;
     }
 
-    this.clearPreviousSearch();
+    this.clearPreviousSearch(false);
     if (query != this.query) {
       this.query = query;
       this.totalResults = this.findAll(query, false);

@@ -22,7 +22,7 @@ let KApp = class KApp extends LitElement {
         this.fetchData();
         document.body.addEventListener('keyup', (e) => {
             if (e.key == 'Escape') {
-                this.clearPreviousSearch();
+                this.clearPreviousSearch(false);
             }
         });
     }
@@ -35,6 +35,8 @@ let KApp = class KApp extends LitElement {
     async fetchData() {
         // TODO(katlyn): You can remove the proxy once hosting.
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        // TODO(katlyn): /zm/json doesn't work because of BG0Property
+        // not being defined on enums.
         const targetBaseUrl = 'http://labk.org/maps/mf/json/';
         this.enums = await fetch(proxyUrl + targetBaseUrl + 'enums.json')
             .then(response => response.json());
@@ -59,7 +61,7 @@ let KApp = class KApp extends LitElement {
     }
     findAll(query, highlight = true) {
         var _a;
-        this.clearPreviousSearch();
+        this.clearPreviousSearch(false);
         const gen = this.search(query, this.getVersionedData(), []);
         let result = gen.next().value;
         let resultCount = 0;
@@ -70,11 +72,17 @@ let KApp = class KApp extends LitElement {
             }
             result = gen.next().value;
         }
+        if (highlight) {
+            this.resultCount = 1;
+            this.totalResults = resultCount;
+        }
         return resultCount;
     }
-    clearPreviousSearch() {
-        var _a;
-        ((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('k-table')).clearHighlights();
+    clearPreviousSearch(clearInput = true) {
+        if (clearInput) {
+            this.shadowRoot.querySelector('input').value = '';
+        }
+        this.shadowRoot.querySelector('k-table').clearHighlights();
     }
     collapseAll() {
         var _a;
@@ -85,7 +93,7 @@ let KApp = class KApp extends LitElement {
         if (!query) {
             return;
         }
-        this.clearPreviousSearch();
+        this.clearPreviousSearch(false);
         if (query != this.query) {
             this.query = query;
             this.totalResults = this.findAll(query, false);

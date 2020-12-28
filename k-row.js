@@ -77,10 +77,14 @@ let KRow = class KRow extends LitElement {
     getSize() {
         let size;
         if (this.data.size) {
+            if (typeof size == 'object') {
+                size = size[this.version];
+            }
             size = parseInt(this.data.size, 16);
         }
         else {
-            switch (this.data.type) {
+            let type = this.data.type.split('.')[0];
+            switch (type) {
                 case 'u8':
                 case 's8':
                 case 'flags8':
@@ -93,11 +97,14 @@ let KRow = class KRow extends LitElement {
                     break;
                 case 'u32':
                 case 's32':
-                case 'pointer':
+                case 'ptr':
                     size = 4;
                     break;
+                case 'palette':
+                    size = 32;
+                    break;
                 default:
-                    size = parseInt(this.structs[this.data.type].size, 16);
+                    size = parseInt(this.structs[type].size, 16);
                     break;
             }
         }
@@ -222,7 +229,7 @@ KRow.styles = css `
       flex: none;
       font-family: "Courier New", monospace;
       text-align: right;
-      width: 20%;
+      width: 15%;
     }
 
     .desc {
