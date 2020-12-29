@@ -37,9 +37,8 @@ let KApp = class KApp extends LitElement {
     async fetchData() {
         // TODO(katlyn): You can remove the proxy once hosting.
         const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        // TODO(katlyn): /zm/json doesn't work because of BG0Property
-        // not being defined on enums.
-        const targetBaseUrl = 'http://labk.org/maps/mf/json/';
+        // 'mf' 'zm'
+        const targetBaseUrl = 'http://labk.org/maps/zm/json/';
         this.enums = await fetch(proxyUrl + targetBaseUrl + 'enums.json')
             .then(response => response.json());
         this.structs = await fetch(proxyUrl + targetBaseUrl + 'structs.json')

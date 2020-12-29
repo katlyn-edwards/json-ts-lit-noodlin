@@ -140,13 +140,18 @@ export class KTable extends LitElement {
       this.sortFn =
           (a: {[key: string]: unknown}, b: {[key: string]: unknown}) => {
             if (key == 'addr') {
-              if (parseInt((a[key] as {[key: string]: string})[this.version]) <
-                  parseInt((b[key] as {[key: string]:
-                                           string})[this.version as string])) {
+              if (parseInt(
+                      (a[key] as {[key: string]: string})[this.version], 16) <
+                  parseInt(
+                      (b[key] as
+                       {[key: string]: string})[this.version as string],
+                      16)) {
                 return this.sortAscending ? -1 : 1;
               } else if (
-                  parseInt((a[key] as {[key: string]: string})[this.version]) >
-                  parseInt((b[key] as {[key: string]: string})[this.version])) {
+                  parseInt(
+                      (a[key] as {[key: string]: string})[this.version], 16) >
+                  parseInt(
+                      (b[key] as {[key: string]: string})[this.version], 16)) {
                 return this.sortAscending ? 1 : -1;
               } else {
                 return 0;

@@ -95,12 +95,12 @@ let KTable = class KTable extends LitElement {
             this.sortFn =
                 (a, b) => {
                     if (key == 'addr') {
-                        if (parseInt(a[key][this.version]) <
-                            parseInt(b[key][this.version])) {
+                        if (parseInt(a[key][this.version], 16) <
+                            parseInt(b[key][this.version], 16)) {
                             return this.sortAscending ? -1 : 1;
                         }
-                        else if (parseInt(a[key][this.version]) >
-                            parseInt(b[key][this.version])) {
+                        else if (parseInt(a[key][this.version], 16) >
+                            parseInt(b[key][this.version], 16)) {
                             return this.sortAscending ? 1 : -1;
                         }
                         else {
