@@ -8,6 +8,8 @@ export class KTable extends LitElement {
   static styles = css`
     :host {
       display: block;
+
+      --k-black: #999999;
     }
 
     .heading {
@@ -39,6 +41,28 @@ export class KTable extends LitElement {
       margin: auto;
       max-width: 700px;
     }
+
+    :host(#first) #heading-row {
+      background: white;
+      border-bottom: 1px solid var(--k-black);
+      display: flex;
+      position: sticky;
+      top: 128px;
+    }
+
+    .desc,
+    .params,
+    .return {
+      flex: 1;
+    }
+
+    .sort {
+      display: inline-block;
+    }
+
+    :host(:not([sortascending])) .sort {
+      transform: rotate(180deg);
+    }
   `;
 
   /**
@@ -58,9 +82,11 @@ export class KTable extends LitElement {
 
   @property({type: Function}) sortFn?: ((a: any, b: any) => number)|undefined;
 
-  @property({type: Boolean}) sortAscending = true;
+  @property({type: Boolean, reflect: true}) sortAscending = true;
 
   @property({type: String}) sortedHeading = 'Address';
+
+  @property({type: String}) maptype = '';
 
   private getVersionedData(version: string) {
     return this.data.filter(
@@ -70,7 +96,11 @@ export class KTable extends LitElement {
 
   private getClasses() {
     if (this.version) {
-      return ['addr', 'size', 'desc'];
+      let classes = ['addr', 'size', 'desc'];
+      if (['code', 'sprite_ai'].includes(this.maptype)) {
+        classes.push('params', 'return');
+      }
+      return classes;
     }
     if (this.isEnum) {
       return ['val', 'desc']
@@ -101,9 +131,13 @@ export class KTable extends LitElement {
     rows.forEach(row => row.collapseAll());
   }
 
-  private getHeadings() {
+  private getHeadings(mapType: string) {
     if (this.version) {
-      return ['Address', 'Length', 'Description'];
+      let headings = ['Address', 'Length', 'Description'];
+      if (['code', 'sprite_ai'].includes(mapType)) {
+        headings.push('Arguments', 'Returns');
+      }
+      return headings;
     }
     if (this.isEnum) {
       return ['Value', 'Description'];
@@ -179,10 +213,11 @@ export class KTable extends LitElement {
   render() {
     return html`
       <div id="table">
-        <div>
+        <div id="heading-row">
           ${
-        this.getHeadings().map(
-            (heading, index) => html`
+        this.getHeadings(this.maptype)
+            .map(
+                (heading, index) => html`
               <span class="heading ${this.getClasses()[index]}"
                     @click="${this.maybeSort}">
                 <span class="label">
@@ -190,7 +225,8 @@ export class KTable extends LitElement {
                 </span>
                 <span class="sort">
                   ${
-                (this.sortedHeading == heading) ? html`▾` : html`&nbsp;&nbsp;`}
+                    (this.sortedHeading == heading) ? html`&#x25BE;` :
+                                                      html`&nbsp;&nbsp;`}
                 </span>
               </span>`)}
         </div>
@@ -199,6 +235,7 @@ export class KTable extends LitElement {
         this.getData(this.sortFn)
             .map((item: {[key: string]: unknown}, index: number) => {
               return html`<k-row
+                  .maptype="${this.maptype}"
                   .data="${item}"
                   .structs="${this.structs}"
                   .enums="${this.enums}"

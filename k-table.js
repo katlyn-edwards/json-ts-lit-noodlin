@@ -22,13 +22,18 @@ let KTable = class KTable extends LitElement {
         this.parentAddress = '';
         this.sortAscending = true;
         this.sortedHeading = 'Address';
+        this.maptype = '';
     }
     getVersionedData(version) {
         return this.data.filter((item) => version in item.addr);
     }
     getClasses() {
         if (this.version) {
-            return ['addr', 'size', 'desc'];
+            let classes = ['addr', 'size', 'desc'];
+            if (['code', 'sprite_ai'].includes(this.maptype)) {
+                classes.push('params', 'return');
+            }
+            return classes;
         }
         if (this.isEnum) {
             return ['val', 'desc'];
@@ -58,9 +63,13 @@ let KTable = class KTable extends LitElement {
         let rows = Array.from((_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelectorAll('k-row'));
         rows.forEach(row => row.collapseAll());
     }
-    getHeadings() {
+    getHeadings(mapType) {
         if (this.version) {
-            return ['Address', 'Length', 'Description'];
+            let headings = ['Address', 'Length', 'Description'];
+            if (['code', 'sprite_ai'].includes(mapType)) {
+                headings.push('Arguments', 'Returns');
+            }
+            return headings;
         }
         if (this.isEnum) {
             return ['Value', 'Description'];
@@ -131,15 +140,17 @@ let KTable = class KTable extends LitElement {
     render() {
         return html `
       <div id="table">
-        <div>
-          ${this.getHeadings().map((heading, index) => html `
+        <div id="heading-row">
+          ${this.getHeadings(this.maptype)
+            .map((heading, index) => html `
               <span class="heading ${this.getClasses()[index]}"
                     @click="${this.maybeSort}">
                 <span class="label">
                   ${heading}
                 </span>
                 <span class="sort">
-                  ${(this.sortedHeading == heading) ? html `▾` : html `&nbsp;&nbsp;`}
+                  ${(this.sortedHeading == heading) ? html `&#x25BE;` :
+            html `&nbsp;&nbsp;`}
                 </span>
               </span>`)}
         </div>
@@ -147,6 +158,7 @@ let KTable = class KTable extends LitElement {
           ${this.getData(this.sortFn)
             .map((item, index) => {
             return html `<k-row
+                  .maptype="${this.maptype}"
                   .data="${item}"
                   .structs="${this.structs}"
                   .enums="${this.enums}"
@@ -164,6 +176,8 @@ let KTable = class KTable extends LitElement {
 KTable.styles = css `
     :host {
       display: block;
+
+      --k-black: #999999;
     }
 
     .heading {
@@ -195,6 +209,28 @@ KTable.styles = css `
       margin: auto;
       max-width: 700px;
     }
+
+    :host(#first) #heading-row {
+      background: white;
+      border-bottom: 1px solid var(--k-black);
+      display: flex;
+      position: sticky;
+      top: 128px;
+    }
+
+    .desc,
+    .params,
+    .return {
+      flex: 1;
+    }
+
+    .sort {
+      display: inline-block;
+    }
+
+    :host(:not([sortascending])) .sort {
+      transform: rotate(180deg);
+    }
   `;
 __decorate([
     property({ type: Array })
@@ -218,11 +254,14 @@ __decorate([
     property({ type: Function })
 ], KTable.prototype, "sortFn", void 0);
 __decorate([
-    property({ type: Boolean })
+    property({ type: Boolean, reflect: true })
 ], KTable.prototype, "sortAscending", void 0);
 __decorate([
     property({ type: String })
 ], KTable.prototype, "sortedHeading", void 0);
+__decorate([
+    property({ type: String })
+], KTable.prototype, "maptype", void 0);
 KTable = __decorate([
     customElement('k-table')
 ], KTable);

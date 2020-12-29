@@ -18,6 +18,7 @@ export declare class KTable extends LitElement {
     sortFn?: ((a: any, b: any) => number) | undefined;
     sortAscending: boolean;
     sortedHeading: string;
+    maptype: string;
     private getVersionedData;
     private getClasses;
     highlight(result: {

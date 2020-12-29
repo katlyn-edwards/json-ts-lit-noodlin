@@ -11,11 +11,11 @@ export class KApp extends LitElement {
     }
 
     h1,
-    #version {
+    #banner {
       text-align: center;
     }
 
-    #version {
+    #banner {
       background-color: white;
       margin: 0;
       padding: 20px 0;
@@ -52,13 +52,19 @@ export class KApp extends LitElement {
 
   @property({type: Object}) structs: {[key: string]: unknown} = {};
 
-  @property({type: Array}) ram: Array<{[key: string]: unknown}> = [];
+  @property({type: Array}) data: Array<{[key: string]: unknown}> = [];
 
   @property({type: Number}) resultCount = 0;
 
   @property({type: Number}) totalResults = 0;
 
   @property({type: Boolean}) noResults = false;
+
+  @property({type: String}) game = 'mf';
+
+  @property({type: String}) map = 'ram';
+
+  @property({type: Boolean}) fetchingData = false;
 
   query = '';
   generator: Generator<{row: number[], key: string}, void, unknown>|undefined =
@@ -76,7 +82,7 @@ export class KApp extends LitElement {
   }
 
   private getVersionedData() {
-    return this.ram.filter(
+    return this.data.filter(
         (item: {[key: string]: unknown}) =>
             this.version in (item.addr as {[key: string]: string}));
   }
@@ -86,16 +92,20 @@ export class KApp extends LitElement {
   }
 
   async fetchData() {
+    if (!this.game || !this.map) {
+      return;
+    }
+    this.fetchingData = true;
     // TODO(katlyn): You can remove the proxy once hosting.
     const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    // 'mf' 'zm'
-    const targetBaseUrl = 'http://labk.org/maps/zm/json/';
+    const targetBaseUrl = `http://labk.org/maps/${this.game}/json/`;
     this.enums = await fetch(proxyUrl + targetBaseUrl + 'enums.json')
                      .then(response => response.json());
     this.structs = await fetch(proxyUrl + targetBaseUrl + 'structs.json')
                        .then(response => response.json());
-    this.ram = await fetch(proxyUrl + targetBaseUrl + 'ram.json')
-                   .then(response => response.json());
+    this.data = await fetch(proxyUrl + targetBaseUrl + `${this.map}.json`)
+                    .then(response => response.json());
+    this.fetchingData = false;
   }
 
   private inputHandler(e: Event) {
@@ -226,7 +236,17 @@ export class KApp extends LitElement {
       for (let j = 0; j < keys.length; j++) {
         let thisKey = keys[j];
         let searchable = (row[(thisKey as string)] as string);
-        if (thisKey == 'addr') {
+        if (!searchable && ['params', 'return'].includes(thisKey)) {
+          searchable = 'void';
+        }
+        if (thisKey == 'params' && Array.isArray(row[(thisKey)])) {
+          // Params is actually an array, but we render it as
+          // a single cell, so go ahead and re-join it to
+          // search over the string.
+          searchable = (searchable as unknown as string[]).join(',');
+        }
+        if ((thisKey == 'size' && typeof row[thisKey] == 'object') ||
+            thisKey == 'addr') {
           searchable =
               (searchable as unknown as
                ({[key: string]: string}))[this.version];
@@ -259,7 +279,41 @@ export class KApp extends LitElement {
     }
   }
 
-  getRenderedResultsCount(
+  private getGames() {
+    return [
+      {
+        label: 'Metroid Fusion',
+        value: 'mf',
+      },
+      {
+        label: 'Metroid Zero Mission',
+        value: 'zm',
+      },
+    ];
+  }
+
+  private getMaps() {
+    return [
+      {
+        label: 'RAM Map',
+        value: 'ram',
+      },
+      {
+        label: 'ROM Code Map',
+        value: 'code',
+      },
+      {
+        label: 'Sprite AI',
+        value: 'sprite_ai',
+      },
+      {
+        label: 'ROM Data Map',
+        value: 'data',
+      },
+    ];
+  }
+
+  private getRenderedResultsCount(
       resultCount: number, totalResults: number, noResults: boolean) {
     if (noResults) {
       // Render 0 of 0
@@ -268,41 +322,77 @@ export class KApp extends LitElement {
     return resultCount ? resultCount + ' of ' + totalResults : ''
   }
 
+  private versionChangeHandler() {
+    this.version =
+        (this.shadowRoot!.querySelector('#version-select')! as HTMLInputElement)
+            .value;
+  }
+
+  private mapChangeHandler() {
+    // ram, code, data, sprite_ai
+    this.map =
+        (this.shadowRoot!.querySelector('#map-select')! as HTMLInputElement)
+            .value;
+    this.fetchData();
+  }
+
+  private gameChangeHandler() {
+    // 'mf' 'zm'
+    this.game =
+        (this.shadowRoot!.querySelector('#game-select')! as HTMLInputElement)
+            .value;
+    this.fetchData();
+  }
+
   render() {
     return html`
       <div>
-        <h1>Metroid Fusion RAM Map</h1>
-        <p id="version">
-          Version:
-          <select @change="${this.changeHandler}">
-            ${
+        <h1>GBA Metroid Maps</h1>
+        <div id="banner">
+          <p>
+            <select id="game-select" @change="${this.gameChangeHandler}">
+              ${
+        this.getGames().map(
+            game => html`<option value="${game.value}">${game.label}</option>`)}
+            </select>
+            <select id="map-select" @change="${this.mapChangeHandler}">
+                ${
+        this.getMaps().map(
+            map => html`<option value="${map.value}">${map.label}</option>`)}
+            </select>
+          </p>
+          <p>
+            Version:
+            <select id="version-select" @change="${this.versionChangeHandler}">
+              ${
         this.getVersions().map(
             version => html`<option value="${version}">${version}</option>`)}
-          </select>
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          Search:
-          <label data-results="${
+            </select>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            Search:
+            <label data-results="${
         this.getRenderedResultsCount(
             this.resultCount, this.totalResults, this.noResults)}">
-            <input @keyup='${this.inputHandler}'/>
-          </label>
-          <button @click="${this.searchButtonHandler}">Find</button>
-          <button @click="${this.findAllButtonHandler}">Find All</button>
-          <button @click="${this.clearPreviousSearch}">Clear results</button>
-          <button @click="${this.collapseAll}">Collapse All</button>
-        </p>
-        <k-table
+              <input @keyup='${this.inputHandler}'/>
+            </label>
+            <button @click="${this.searchButtonHandler}">Find</button>
+            <button @click="${this.findAllButtonHandler}">Find All</button>
+            <button @click="${this.clearPreviousSearch}">Clear results</button>
+            <button @click="${this.collapseAll}">Collapse All</button>
+          </p>
+        </div>
+        ${
+    !this.fetchingData ? html`
+        <k-table id="first"
+          .maptype="${this.map}"
           .version="${this.version}"
-          .data="${this.ram}"
+          .data="${this.data}"
           .structs="${this.structs}"
-          .enums="${this.enums}"></k -
-         table><
-        /div>
-    `;
-  }
-
-  changeHandler() {
-    this.version = this.shadowRoot!.querySelector('select')!.value
+          .enums="${this.enums}">
+        </k-table>
+        ` :
+                         ''}
+      </div>`;
   }
 }
 

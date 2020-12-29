@@ -22,6 +22,7 @@ let KRow = class KRow extends LitElement {
         this.expanded = false;
         this.isEnum = false;
         this.parentAddress = '';
+        this.maptype = '';
     }
     toHex(num) {
         return num.toString(16).toUpperCase();
@@ -30,7 +31,7 @@ let KRow = class KRow extends LitElement {
         const size = this.getSize();
         const count = this.getCount();
         const length = size * count;
-        return this.toHex(length);
+        return length;
     }
     async highlightCell(key, shouldScroll) {
         var _a;
@@ -41,7 +42,7 @@ let KRow = class KRow extends LitElement {
         let element = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('.' + key);
         if (shouldScroll) {
             // Account for the sticky header.
-            const yOffset = -60;
+            const yOffset = -155;
             const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
@@ -111,6 +112,9 @@ let KRow = class KRow extends LitElement {
         return size;
     }
     getTooltip() {
+        if (['code', 'sprite_ai'].includes(this.maptype)) {
+            return `Ends at ${this.toHex(parseInt(this.getAddress(), 16) + this.getLength() - 1)}`;
+        }
         if (this.version) {
             const count = this.getCount();
             if (count > 1) {
@@ -178,7 +182,7 @@ let KRow = class KRow extends LitElement {
       </div>
       <div class="size">
         <span class="${this.version && !!this.getTooltip() ? 'has-tooltip' : ''}"
-              title="${this.getTooltip()}">${this.getLength()}</span>
+              title="${this.getTooltip()}">${this.toHex(this.getLength())}</span>
       </div>
       <div class="desc">${this.data.desc} ${this.showToggle() ?
                 html `<span class="expand" @click="${this.expand}">[${this.expanded ? '-' : '+'}]</span>` :
@@ -193,6 +197,22 @@ let KRow = class KRow extends LitElement {
             </k-table>` :
                 ''}
       </div>
+      ${['code', 'sprite_ai'].includes(this.maptype) ?
+                html `
+      <div class="params">
+        <span>
+          ${this.data.params ?
+                    this.data.params
+                        .map((param, index) => html `<p class="param">r${index}: ${param}</p>`) :
+                    'void'}
+        </span>
+      </div>
+      <div class="return">
+        <span>
+          ${this.data.return || 'void'}
+        </span>
+      </div>` :
+                ''}
     `;
     }
 };
@@ -256,13 +276,23 @@ KRow.styles = css `
     }
 
     .expand {
+      color: var(--k-blue);
       cursor: pointer;
       text-decoration: underline;
-      color: var(--k-blue);
     }
 
     .highlight {
       background-color: lightblue;
+    }
+
+    .desc,
+    .params,
+    .return {
+      flex: 1;
+    }
+
+    .param {
+      margin: 0;
     }
   `;
 __decorate([
@@ -289,6 +319,9 @@ __decorate([
 __decorate([
     property({ type: String })
 ], KRow.prototype, "parentAddress", void 0);
+__decorate([
+    property({ type: String })
+], KRow.prototype, "maptype", void 0);
 KRow = __decorate([
     customElement('k-row')
 ], KRow);

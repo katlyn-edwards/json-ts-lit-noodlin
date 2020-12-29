@@ -21,6 +21,7 @@ export declare class KRow extends LitElement {
     expanded: boolean;
     isEnum: boolean;
     parentAddress: string;
+    maptype: string;
     private toHex;
     private getLength;
     highlightCell(key: string, shouldScroll: boolean): Promise<void>;
