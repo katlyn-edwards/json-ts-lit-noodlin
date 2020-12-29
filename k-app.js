@@ -183,6 +183,7 @@ let KApp = class KApp extends LitElement {
                     searchable = searchable.join(',');
                 }
                 if ((thisKey == 'size' && typeof row[thisKey] == 'object') ||
+                    (thisKey == 'count' && typeof row[thisKey] == 'object') ||
                     thisKey == 'addr') {
                     searchable =
                         searchable[this.version];

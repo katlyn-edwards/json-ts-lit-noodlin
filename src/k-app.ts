@@ -246,6 +246,7 @@ export class KApp extends LitElement {
           searchable = (searchable as unknown as string[]).join(',');
         }
         if ((thisKey == 'size' && typeof row[thisKey] == 'object') ||
+            (thisKey == 'count' && typeof row[thisKey] == 'object') ||
             thisKey == 'addr') {
           searchable =
               (searchable as unknown as
