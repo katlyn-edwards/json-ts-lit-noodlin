@@ -16,6 +16,7 @@ export declare class KApp extends LitElement {
     }>;
     resultCount: number;
     totalResults: number;
+    noResults: boolean;
     query: string;
     generator: Generator<{
         row: number[];
@@ -42,7 +43,7 @@ export declare class KApp extends LitElement {
         row: number[];
         key: string;
     }>;
-    getRenderedResultsCount(resultCount: number, totalResults: number): string;
+    getRenderedResultsCount(resultCount: number, totalResults: number, noResults: boolean): string;
     render(): import("lit-element").TemplateResult;
     changeHandler(): void;
 }

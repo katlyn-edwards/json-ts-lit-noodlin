@@ -17,6 +17,7 @@ let KApp = class KApp extends LitElement {
         this.ram = [];
         this.resultCount = 0;
         this.totalResults = 0;
+        this.noResults = false;
         this.query = '';
         this.generator = undefined;
         this.seenResults = [];
@@ -85,7 +86,9 @@ let KApp = class KApp extends LitElement {
             this.shadowRoot.querySelector('input').value = '';
             this.resultCount = 0;
             this.totalResults = 0;
+            this.seenResults = [];
         }
+        this.noResults = false;
         this.shadowRoot.querySelector('k-table').clearHighlights();
     }
     collapseAll() {
@@ -100,8 +103,10 @@ let KApp = class KApp extends LitElement {
         this.clearPreviousSearch(false);
         if (query != this.query) {
             this.query = query;
+            this.resultCount = 0;
             this.totalResults = this.findAll(query, false);
             this.generator = this.search(query, this.getVersionedData(), []);
+            this.seenResults = [];
         }
         if (!forward && this.seenResults.length && this.resultCount > 0) {
             // go backwards to previous result
@@ -121,6 +126,10 @@ let KApp = class KApp extends LitElement {
         }
         const result = this.generator.next().value;
         if (!result) {
+            // if there were never any results, note that
+            if (!this.resultCount) {
+                this.noResults = true;
+            }
             this.query = '';
             this.generator = undefined;
             this.resultCount = 0;
@@ -182,7 +191,11 @@ let KApp = class KApp extends LitElement {
             rowStart.pop();
         }
     }
-    getRenderedResultsCount(resultCount, totalResults) {
+    getRenderedResultsCount(resultCount, totalResults, noResults) {
+        if (noResults) {
+            // Render 0 of 0
+            return resultCount + ' of ' + totalResults;
+        }
         return resultCount ? resultCount + ' of ' + totalResults : '';
     }
     render() {
@@ -196,7 +209,7 @@ let KApp = class KApp extends LitElement {
           </select>
           &nbsp;&nbsp;&nbsp;&nbsp;
           Search:
-          <label data-results="${this.getRenderedResultsCount(this.resultCount, this.totalResults)}">
+          <label data-results="${this.getRenderedResultsCount(this.resultCount, this.totalResults, this.noResults)}">
             <input @keyup='${this.inputHandler}'/>
           </label>
           <button @click="${this.searchButtonHandler}">Find</button>
@@ -275,6 +288,9 @@ __decorate([
 __decorate([
     property({ type: Number })
 ], KApp.prototype, "totalResults", void 0);
+__decorate([
+    property({ type: Boolean })
+], KApp.prototype, "noResults", void 0);
 KApp = __decorate([
     customElement('k-app')
 ], KApp);

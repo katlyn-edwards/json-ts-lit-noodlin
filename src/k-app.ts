@@ -58,6 +58,8 @@ export class KApp extends LitElement {
 
   @property({type: Number}) totalResults = 0;
 
+  @property({type: Boolean}) noResults = false;
+
   query = '';
   generator: Generator<{row: number[], key: string}, void, unknown>|undefined =
       undefined;
@@ -138,7 +140,9 @@ export class KApp extends LitElement {
       this.shadowRoot!.querySelector('input')!.value = '';
       this.resultCount = 0;
       this.totalResults = 0;
+      this.seenResults = [];
     }
+    this.noResults = false;
     this.shadowRoot!.querySelector('k-table')!.clearHighlights();
   }
 
@@ -154,8 +158,10 @@ export class KApp extends LitElement {
     this.clearPreviousSearch(false);
     if (query != this.query) {
       this.query = query;
+      this.resultCount = 0;
       this.totalResults = this.findAll(query, false);
       this.generator = this.search(query, this.getVersionedData(), []);
+      this.seenResults = [];
     }
     if (!forward && this.seenResults.length && this.resultCount > 0) {
       // go backwards to previous result
@@ -175,6 +181,10 @@ export class KApp extends LitElement {
     }
     const result = this.generator!.next().value;
     if (!result) {
+      // if there were never any results, note that
+      if (!this.resultCount) {
+        this.noResults = true;
+      }
       this.query = '';
       this.generator = undefined;
       this.resultCount = 0;
@@ -250,7 +260,12 @@ export class KApp extends LitElement {
     }
   }
 
-  getRenderedResultsCount(resultCount: number, totalResults: number) {
+  getRenderedResultsCount(
+      resultCount: number, totalResults: number, noResults: boolean) {
+    if (noResults) {
+      // Render 0 of 0
+      return resultCount + ' of ' + totalResults;
+    }
     return resultCount ? resultCount + ' of ' + totalResults : ''
   }
 
@@ -268,7 +283,8 @@ export class KApp extends LitElement {
           &nbsp;&nbsp;&nbsp;&nbsp;
           Search:
           <label data-results="${
-        this.getRenderedResultsCount(this.resultCount, this.totalResults)}">
+        this.getRenderedResultsCount(
+            this.resultCount, this.totalResults, this.noResults)}">
             <input @keyup='${this.inputHandler}'/>
           </label>
           <button @click="${this.searchButtonHandler}">Find</button>
