@@ -41,6 +41,7 @@ export declare class KRow extends LitElement {
     private getData;
     private getAddress;
     private shouldAddrHaveToolTip;
+    private getFirstClass;
     render(): import("lit-element").TemplateResult;
 }
 declare global {

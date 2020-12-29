@@ -27,10 +27,13 @@ let KTable = class KTable extends LitElement {
         return this.data.filter((item) => version in item.addr);
     }
     getClasses() {
-        if (this.isEnum) {
-            return ['addr', 'desc'];
+        if (this.version) {
+            return ['addr', 'size', 'desc'];
         }
-        return ['addr', 'size', 'desc'];
+        if (this.isEnum) {
+            return ['val', 'desc'];
+        }
+        return ['offset', 'size', 'desc'];
     }
     highlight(result, shouldScroll = true) {
         var _a;
@@ -171,16 +174,21 @@ KTable.styles = css `
       overflow: hidden;
       padding: 3px;
       text-overflow: ellipsis;
+      vertical-align: top;
     }
 
     .size {
       text-align: right;
-      width: 15%;
+      width: 5em;
+    }
+
+    .val,
+    .offset {
+      width: 4em;
     }
 
     .addr {
-      text-align: right;
-      width: 15%;
+      width: 7em;
     }
 
     .desc {

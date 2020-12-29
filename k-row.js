@@ -156,13 +156,22 @@ let KRow = class KRow extends LitElement {
     shouldAddrHaveToolTip() {
         return !this.version;
     }
+    getFirstClass(data) {
+        if (data.val) {
+            return 'val';
+        }
+        else if (data.addr) {
+            return 'addr';
+        }
+        return 'offset';
+    }
     render() {
         return this.isEnum ?
             html `
-      <div class="addr val">${this.data.val}</div>
+      <div class="${this.getFirstClass(this.data)}">${this.data.val}</div>
       <div class="desc">${this.data.desc}</div>` :
             html `
-      <div class="addr offset">
+      <div class="${this.getFirstClass(this.data)}">
         <span class="${this.shouldAddrHaveToolTip() ? 'has-tooltip' : ''}"
               title="${this.shouldAddrHaveToolTip() ? this.getTooltip() :
                 ''}">${this.getAddress()}</span>
@@ -222,14 +231,23 @@ KRow.styles = css `
     .size {
       flex: none;
       text-align: right;
-      width: 15%;
+      width: 5em;
     }
 
     .addr {
       flex: none;
       font-family: "Courier New", monospace;
+      width: 7em;
+    }
+
+    .addr,
+    .offset {
       text-align: right;
-      width: 15%;
+    }
+
+    .val,
+    .offset {
+      width: 4em;
     }
 
     .desc {

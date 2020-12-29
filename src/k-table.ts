@@ -18,16 +18,21 @@ export class KTable extends LitElement {
       overflow: hidden;
       padding: 3px;
       text-overflow: ellipsis;
+      vertical-align: top;
     }
 
     .size {
       text-align: right;
-      width: 15%;
+      width: 5em;
+    }
+
+    .val,
+    .offset {
+      width: 4em;
     }
 
     .addr {
-      text-align: right;
-      width: 15%;
+      width: 7em;
     }
 
     .desc {
@@ -68,10 +73,13 @@ export class KTable extends LitElement {
   }
 
   private getClasses() {
-    if (this.isEnum) {
-      return ['addr', 'desc']
+    if (this.version) {
+      return ['addr', 'size', 'desc'];
     }
-    return ['addr', 'size', 'desc'];
+    if (this.isEnum) {
+      return ['val', 'desc']
+    }
+    return ['offset', 'size', 'desc'];
   }
 
   highlight(result: {row: number[], key: string}|void, shouldScroll = true) {
