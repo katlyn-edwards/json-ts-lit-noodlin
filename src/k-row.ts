@@ -59,10 +59,6 @@ export class KRow extends LitElement {
       width: 4em;
     }
 
-    .desc {
-      flex: 1;
-    }
-
     .has-tooltip {
       border-bottom: 1px dotted black;
       cursor: help;

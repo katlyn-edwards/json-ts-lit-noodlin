@@ -191,10 +191,6 @@ KTable.styles = css `
       width: 7em;
     }
 
-    .desc {
-      width: 60%;
-    }
-
     #table {
       margin: auto;
       max-width: 700px;
